@@ -1,0 +1,10 @@
+doctype html
+html(lang="en")
+  include ../inclues/head.pug
+  +head("Hdert's General Purpose Web Calculator", "A general purpose calculator written in Zig, compiled to WebAssembly, now on the web!", "", false, "index", "")
+  body.min-vh-100.d-flex.flex-column
+    form#form
+      label(for="input") Input:
+      input#input(type="text", name="input")
+      input#submit(type="submit",value="Submit")
+    script(type="module" src="main.js")
