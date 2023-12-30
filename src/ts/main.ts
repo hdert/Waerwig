@@ -1,6 +1,8 @@
-const module = await WebAssembly.compileStreaming(
-  fetch("./Calculator.wasm")
-);
+export {}
+
+// const module = await WebAssembly.compileStreaming(
+//   fetch("./Calculator.wasm")
+// );
 
 const encodeString = (string) => {
   const buffer = new TextEncoder().encode(string);
@@ -29,7 +31,7 @@ const decodeString = (pointer, length) => {
 
 const {
   exports: { memory, evaluate, alloc },
-} = await WebAssembly.instantiate(module, {
+} = await WebAssembly.instantiateStreaming(fetch("./Calculator.wasm"), {
   env: {
     print: (pointer, length) => {
       const string = decodeString(pointer, length);
