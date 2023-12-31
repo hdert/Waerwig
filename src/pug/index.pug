@@ -3,12 +3,13 @@ html(lang="en",data-bs-theme="dark")
     include ../includes/head.pug
     +head("Hdert's General Purpose Web Calculator", "A general purpose calculator written in Zig, compiled to WebAssembly, now on the web!", "", false, "index", "")
     body.min-vh-100.d-flex.flex-column
-        .container-fluid
-            .justify-content-center.d-flex.flex-wrap.col-8.col-sm-12
-                form#form
+        .container-fluid.vh-100
+            .justify-content-center.d-flex.flex-wrap.align-content-center.vh-100
+                form#form.col-12.col-sm-8
                     .input-group 
                         .form-floating
+                            input.form-control#input(type="text", name="input", placeholder="9+10")
                             label.form-label(for="input") Input
-                            input.form-control.mb-3#input(type="text", name="input", placeholder="9+10")
-                        input.btn.btn-primary#submit(type="submit",value="Submit")
-    script(src="../ts/main.js", type="module")
+                        input.btn.btn-primary#submit(type="submit",value="=")
+    script(src="../js/main.js", type="module")
+    script(src="../js/includes.js", type="module")

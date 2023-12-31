@@ -26,7 +26,9 @@ const decodeString = (pointer, length) => {
 };
 
 const {
-  exports: { memory, evaluate, alloc },
+  instance: {
+    exports: { memory, evaluate, alloc },
+  },
 } = await WebAssembly.instantiateStreaming(fetch("./Calculator.wasm"), {
   env: {
     print: (pointer, length) => {
@@ -48,17 +50,3 @@ function processSubmission(e) {
   e.preventDefault();
   input.value = evaluate(encodeString(input.value));
 }
-
-// import "bootstrap/js/dist/alert";
-// import "bootstrap/js/dist/button";
-// import "bootstrap/js/dist/carousel";
-// import "bootstrap/js/dist/collapse";
-// import "bootstrap/js/dist/dropdown";
-// import "bootstrap/js/dist/modal";
-// import "bootstrap/js/dist/popover";
-// import "bootstrap/js/dist/scrollspy";
-// import "bootstrap/js/dist/tab";
-// import "bootstrap/js/dist/toast";
-// import "bootstrap/js/dist/tooltip";
-// import "bootstrap/js/dist/base-component";
-// import "bootstrap/js/dist/offcanvas";
