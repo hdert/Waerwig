@@ -1,10 +1,14 @@
 doctype html
-html(lang="en")
-  include ../includes/head.pug
-  +head("Hdert's General Purpose Web Calculator", "A general purpose calculator written in Zig, compiled to WebAssembly, now on the web!", "", false, "index", "")
-  body.min-vh-100.d-flex.flex-column
-    form#form
-      label(for="input") Input:
-      input#input(type="text", name="input")
-      input#submit(type="submit",value="Submit")
-    script(type="module" src="../ts/main.ts")
+html(lang="en",data-bs-theme="dark")
+    include ../includes/head.pug
+    +head("Hdert's General Purpose Web Calculator", "A general purpose calculator written in Zig, compiled to WebAssembly, now on the web!", "", false, "index", "")
+    body.min-vh-100.d-flex.flex-column
+        .container-fluid
+            .justify-content-center.d-flex.flex-wrap.col-8.col-sm-12
+                form#form
+                    .input-group 
+                        .form-floating
+                            label.form-label(for="input") Input
+                            input.form-control.mb-3#input(type="text", name="input", placeholder="9+10")
+                        input.btn.btn-primary#submit(type="submit",value="Submit")
+    script(src="../ts/main.js", type="module")
