@@ -11,5 +11,15 @@ html(lang="en",data-bs-theme="dark")
                             input.form-control#input(type="text", name="input", placeholder="9+10")
                             label.form-label(for="input") Input
                         input.btn.btn-primary#submit(type="submit",value="=")
+        #modal.modal.fade(tabindex="-1")
+            .modal-dialog
+                .modal-content
+                    .modal-header
+                    button.btn-close(
+                        type="button",
+                        data-bs-dismiss="modal",
+                        aria-label="Close"
+                    )
+                    #modalBody.modal-body
     script(src="../js/main.js", type="module")
     script(src="../js/includes.js", type="module")

@@ -3,19 +3,31 @@ const Cal = @import("Calculator");
 const Addons = @import("Addons");
 const allocator = std.heap.wasm_allocator;
 
-extern fn inputError(string: [*:0]const u8) void;
+const Error = error{
+    Help,
+    Keywords,
+};
+
+extern fn inputError([*:0]const u8, usize) void;
 
 pub const ErrorHandler = struct {
+    const Self = @This();
+
     pub fn handleError(
-        self: @This(),
+        self: Self,
         err: anyerror,
         location: ?[3]usize,
         equation: ?[]const u8,
-    ) void {
+    ) !void {
         _ = equation;
         _ = location;
         _ = self;
-        inputError(@errorName(err));
+        const error_name = @errorName(err);
+        inputError(error_name.ptr, error_name.len);
+    }
+
+    pub fn init() Self {
+        return Self{};
     }
 };
 
@@ -31,19 +43,29 @@ export fn alloc(length: usize) ?[*]u8 {
 export fn evaluate(input: [*:0]const u8, previousInput: f64) f64 {
     const slice = std.mem.span(input);
     defer allocator.free(slice);
+    const error_handler = ErrorHandler.init();
 
     var equation = Cal.Equation.init(
         allocator,
         null,
         null,
-    ) catch return 0;
+    ) catch |err| {
+        try error_handler.handleError(err, null, null);
+        return 0;
+    };
     defer equation.free();
-    Addons.registerKeywords(&equation) catch return 0;
+    Addons.registerKeywords(&equation) catch |err| {
+        try error_handler.handleError(err, null, null);
+        return 0;
+    };
 
     equation.registerPreviousAnswer(previousInput) catch return 0;
-    return (equation.newInfixEquation(
+    const infix_equation = equation.newInfixEquation(
         slice,
-        null,
-    ) catch return 0)
-        .evaluate() catch return 0;
+        error_handler,
+    ) catch return 0;
+    return infix_equation.evaluate() catch |err| {
+        try error_handler.handleError(err, null, null);
+        return 0;
+    };
 }
