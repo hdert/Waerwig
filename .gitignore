@@ -7,3 +7,4 @@ package-lock.json
 dev/
 *.xcf
 dbfiles/
+dist/

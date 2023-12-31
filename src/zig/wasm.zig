@@ -3,6 +3,22 @@ const Cal = @import("Calculator");
 const Addons = @import("Addons");
 const allocator = std.heap.wasm_allocator;
 
+extern fn inputError(string: [*:0]const u8) void;
+
+pub const ErrorHandler = struct {
+    pub fn handleError(
+        self: @This(),
+        err: anyerror,
+        location: ?[3]usize,
+        equation: ?[]const u8,
+    ) void {
+        _ = equation;
+        _ = location;
+        _ = self;
+        inputError(@errorName(err));
+    }
+};
+
 extern fn print([*:0]const u8, usize) void;
 
 export fn alloc(length: usize) ?[*]u8 {
