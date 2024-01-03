@@ -1451,7 +1451,7 @@ const { instance: { exports: { memory: $8973aab45c5aa6ba$var$memory, evaluate: $
         },
         inputError: (pointer, length)=>{
             const string = $8973aab45c5aa6ba$var$decodeString(pointer, length);
-            document.getElementById("modalBody").innerHTML = "<div class='alert alert-danger' role='alert'>" + string + "</div>";
+            document.getElementById("modalBody").innerHTML = "<div class='alert alert-danger bg-alert mb-0' data-bs-theme='dark' role='alert'>" + string + "</div>";
             new (0, (/*@__PURE__*/$parcel$interopDefault($76cd99ba557798c3$exports)))(document.getElementById("modal")).show();
             $8973aab45c5aa6ba$var$error = true;
         }
