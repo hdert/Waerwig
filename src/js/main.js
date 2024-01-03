@@ -42,7 +42,9 @@ const {
     inputError: (pointer, length) => {
       const string = decodeString(pointer, length);
       document.getElementById("modalBody").innerHTML =
-        "<div class='alert alert-danger' role='alert'>" + string + "</div>";
+        "<div class='alert alert-danger bg-alert mb-0' data-bs-theme='dark' role='alert'>" +
+        string +
+        "</div>";
       new Modal(document.getElementById("modal")).show();
       error = true;
     },

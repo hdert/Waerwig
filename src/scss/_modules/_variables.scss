@@ -5,11 +5,34 @@
 // 2. Include any default variable overrides here
 
 /*! Variables */
-// $highlight-two: #8bdeff;
-// $highlight-one: #26466f;
-// $body-bg: $highlight-two;
-// $primary: $highlight-one;
-// $enable-gradients: true;
+$atom-one-dark-black: #282c34;
+$atom-one-dark-gray: #abb2bf;
+$atom-one-dark-red: #e06c75;
+$atom-one-dark-green: #98c379;
+$atom-one-dark-yellow: #e5c07b;
+$atom-one-dark-blue: #61afef;
+$atom-one-dark-purple: #c678dd;
+$atom-one-dark-teal: #56b6c2;
+$atom-one-dark-orange: #d19a66;
+$atom-one-dark-gray-blue: #5c6370;
+
+$body-bg: $atom-one-dark-black;
+// $primary: $atom-one-dark-blue; // Already this
+// $secondary: $atom-one-dark-gray-blue;
+$light: $atom-one-dark-gray;
+$dark: $atom-one-dark-black;
+$blue: $atom-one-dark-blue;
+// $indigo: ; // No one dark indigo
+$purple: $atom-one-dark-purple;
+// $pink: ; // No one dark pink
+$red: $atom-one-dark-red;
+$orange: $atom-one-dark-orange;
+$yellow: $atom-one-dark-yellow;
+$green: $atom-one-dark-green;
+$teal: $atom-one-dark-teal;
+// $cyan: ; // No one dark cyan, one needs to be found as used lots
+$enable-gradients: true;
+// $color-mode-type: media-query;
 // $navbar-dark-hover-color: #fff;
 // $navbar-dark-color: rgba(#fff, 0.75);
 // $carousel-control-opacity: 1;
