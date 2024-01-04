@@ -4,6 +4,11 @@
 /// - Make upstream support exponential notation
 
 var previousAnswer = 0;
+var finalCalculation = false;
+var input = document.getElementById("input");
+var form = document.getElementById("form");
+var upperRow = document.getElementById("upper-row");
+var lowerRow = document.getElementById("lower-row");
 
 const encodeString = (string) => {
   const buffer = new TextEncoder().encode(string);
@@ -50,32 +55,36 @@ const {
         "</div>";
       error = true;
     },
+    handleAnswer: (pointer, length, result) => {
+      const string = decodeString(pointer, length);
+      previousAnswer = result;
+      const text =
+        "<div class='alert alert-dark mb-0 text-end' data-bs-theme='dark' role='alert'>" +
+        "<p class='fw-light mb-0'>" +
+        string +
+        "</p>" +
+        "<p class='mb-0'>" +
+        result +
+        "</p>" +
+        "</div>";
+      if (finalCalculation) {
+        upperRow.insertAdjacentHTML("beforeend", text);
+        input.value = "";
+      } else {
+        lowerRow.innerHTML = text;
+      }
+    },
   },
 });
 
 console.log(evaluate(encodeString("10+10"), 0));
 
-var input = document.getElementById("input");
-var form = document.getElementById("form");
-var upperRow = document.getElementById("upper-row");
-var lowerRow = document.getElementById("lower-row");
-
 form.addEventListener("submit", processSubmission);
 
 function processSubmission(e) {
   e.preventDefault();
-  const result = calculateResult(input.value);
-  if (!error) {
-    previousAnswer = result;
-    upperRow.insertAdjacentHTML(
-      "beforeend",
-      "<div class='alert alert-dark mb-0 text-end' data-bs-theme='dark' role='alert'>" +
-        result +
-        "</div>"
-    );
-    input.value = "";
-  }
-  error = false;
+  finalCalculation = true;
+  calculateResult(input.value);
 }
 
 function calculateResult(userInput) {
@@ -83,12 +92,6 @@ function calculateResult(userInput) {
 }
 
 window.addEventListener("keyup", () => {
-  const result = calculateResult(input.value);
-  if (!error) {
-    lowerRow.innerHTML =
-      "<div class='alert alert-dark mb-0 text-end' data-bs-theme='dark' role='alert'>" +
-      result +
-      "</div>";
-  }
-  error = false;
+  finalCalculation = false;
+  calculateResult(input.value);
 });

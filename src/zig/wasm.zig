@@ -2,6 +2,7 @@ const std = @import("std");
 const Cal = @import("Calculator");
 const Addons = @import("Addons");
 const allocator = std.heap.wasm_allocator;
+const Allocator = std.mem.Allocator;
 
 const Error = error{
     Help,
@@ -10,8 +11,12 @@ const Error = error{
 
 extern fn inputError([*:0]const u8, usize) void;
 
+extern fn handleAnswer([*]const u8, usize, f64) void;
+
 pub const ErrorHandler = struct {
     const Self = @This();
+
+    allocator: Allocator,
 
     pub fn handleError(
         self: Self,
@@ -27,7 +32,9 @@ pub const ErrorHandler = struct {
     }
 
     pub fn init() Self {
-        return Self{};
+        return Self{
+            .allocator = allocator,
+        };
     }
 };
 
@@ -40,7 +47,7 @@ export fn alloc(length: usize) ?[*]u8 {
         null;
 }
 
-export fn evaluate(input: [*:0]const u8, previousInput: f64) f64 {
+export fn evaluate(input: [*:0]const u8, previousInput: f64) void {
     const slice = std.mem.span(input);
     defer allocator.free(slice);
     const error_handler = ErrorHandler.init();
@@ -51,25 +58,26 @@ export fn evaluate(input: [*:0]const u8, previousInput: f64) f64 {
         null,
     ) catch |err| {
         try error_handler.handleError(err, null, null);
-        return 0;
+        return;
     };
     defer equation.free();
     Addons.registerKeywords(&equation) catch |err| {
         try error_handler.handleError(err, null, null);
-        return 0;
+        return;
     };
 
     equation.registerPreviousAnswer(previousInput) catch |err| {
         try error_handler.handleError(err, null, null);
-        return 0;
+        return;
     };
     const infix_equation = equation.newInfixEquation(
         slice,
         error_handler,
-    ) catch return 0;
+    ) catch return;
 
-    return infix_equation.evaluate() catch |err| {
+    const result = infix_equation.evaluate() catch |err| {
         try error_handler.handleError(err, null, null);
-        return 0;
+        return;
     };
+    handleAnswer(infix_equation.data.ptr, infix_equation.data.len, result);
 }
