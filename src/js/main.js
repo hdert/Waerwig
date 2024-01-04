@@ -1,6 +1,7 @@
-// export {};
-
-import Modal from "bootstrap/js/dist/modal";
+/// TODO:
+/// - Save and reload equations
+/// - Make it look more like a fullscreen calculator/speedcrunch
+/// - Make upstream support exponential notation
 
 const encodeString = (string) => {
   const buffer = new TextEncoder().encode(string);
@@ -41,11 +42,10 @@ const {
     },
     inputError: (pointer, length) => {
       const string = decodeString(pointer, length);
-      document.getElementById("modalBody").innerHTML =
-        "<div class='alert alert-danger bg-alert mb-0' data-bs-theme='dark' role='alert'>" +
+      lowerRow.innerHTML =
+        "<div class='alert alert-danger mb-0' data-bs-theme='dark' role='alert'>" +
         string +
         "</div>";
-      new Modal(document.getElementById("modal")).show();
       error = true;
     },
   },
@@ -54,16 +54,31 @@ const {
 console.log(evaluate(encodeString("10+10")));
 
 var input = window.document.getElementById("input");
-var button = window.document.getElementById("submit");
 var form = window.document.getElementById("form");
+var lowerRow = window.document.getElementById("lower-row");
 
 form.addEventListener("submit", processSubmission);
 
 function processSubmission(e) {
   e.preventDefault();
-  const value = evaluate(encodeString(input.value));
+  const value = calculateResult(input.value);
   if (!error) {
     input.value = value;
   }
   error = false;
 }
+
+function calculateResult(userInput) {
+  return evaluate(encodeString(userInput));
+}
+
+window.addEventListener("keyup", () => {
+  const result = calculateResult(input.value);
+  if (!error) {
+    lowerRow.innerHTML =
+      "<div class='alert alert-dark mb-0 text-end' data-bs-theme='dark' role='alert'>" +
+      result +
+      "</div>";
+  }
+  error = false;
+});

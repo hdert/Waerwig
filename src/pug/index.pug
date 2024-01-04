@@ -2,11 +2,11 @@ doctype html
 html(lang="en")
     include ../includes/head.pug
     +head("Hdert's General Purpose Web Calculator", "A general purpose calculator written in Zig, compiled to WebAssembly, now on the web!", "../img/icons/calculator-fill.png", false, "index", "An image of a calculator")
-    body.min-vh-100.d-flex.flex-column
+    body.min-vh-100.d-flex.flex-column.text-light
         .container-fluid.vh-100
             .justify-content-center.d-flex.flex-wrap.align-content-center.vh-100
                 .col-12.col-sm-8.d-flex.flex-wrap.border-secondary.border.rounded
-                    .row.w-100
+                    .row.w-100.ms-0#upper-row
                     .row.w-100.ms-0
                         form#form.col-12.p-0
                             .input-group 
@@ -14,16 +14,6 @@ html(lang="en")
                                     input.form-control.border-secondary.text-light#input(type="text", name="input", placeholder="9+10")
                                     label.form-label.text-light(for="input") Input
                                 input.btn.btn-primary.fs-3#submit(type="submit",value="=")
-                    .row.w-100
-        #modal.modal.fade(tabindex="-1")
-            .modal-dialog
-                .modal-content
-                    .modal-header.border-light
-                        button.btn-close(
-                            type="button",
-                            data-bs-dismiss="modal",
-                            aria-label="Close"
-                        ).btn-close-white
-                    #modalBody.modal-body
+                    .row.w-100.ms-0#lower-row
     script(src="../js/main.js", type="module")
     script(src="../js/includes.js", type="module")
