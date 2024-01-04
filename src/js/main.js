@@ -55,18 +55,25 @@ const {
 
 console.log(evaluate(encodeString("10+10"), 0));
 
-var input = window.document.getElementById("input");
-var form = window.document.getElementById("form");
-var lowerRow = window.document.getElementById("lower-row");
+var input = document.getElementById("input");
+var form = document.getElementById("form");
+var upperRow = document.getElementById("upper-row");
+var lowerRow = document.getElementById("lower-row");
 
 form.addEventListener("submit", processSubmission);
 
 function processSubmission(e) {
   e.preventDefault();
-  const value = calculateResult(input.value);
+  const result = calculateResult(input.value);
   if (!error) {
-    previousAnswer = value;
-    input.value = value;
+    previousAnswer = result;
+    upperRow.insertAdjacentHTML(
+      "beforeend",
+      "<div class='alert alert-dark mb-0 text-end' data-bs-theme='dark' role='alert'>" +
+        result +
+        "</div>"
+    );
+    input.value = "";
   }
   error = false;
 }
