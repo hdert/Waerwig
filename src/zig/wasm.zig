@@ -59,11 +59,15 @@ export fn evaluate(input: [*:0]const u8, previousInput: f64) f64 {
         return 0;
     };
 
-    equation.registerPreviousAnswer(previousInput) catch return 0;
+    equation.registerPreviousAnswer(previousInput) catch |err| {
+        try error_handler.handleError(err, null, null);
+        return 0;
+    };
     const infix_equation = equation.newInfixEquation(
         slice,
         error_handler,
     ) catch return 0;
+
     return infix_equation.evaluate() catch |err| {
         try error_handler.handleError(err, null, null);
         return 0;

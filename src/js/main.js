@@ -3,6 +3,8 @@
 /// - Make it look more like a fullscreen calculator/speedcrunch
 /// - Make upstream support exponential notation
 
+var previousAnswer = 0;
+
 const encodeString = (string) => {
   const buffer = new TextEncoder().encode(string);
   const pointer = alloc(buffer.length + 1); // ask Zig to allocate memory
@@ -51,7 +53,7 @@ const {
   },
 });
 
-console.log(evaluate(encodeString("10+10")));
+console.log(evaluate(encodeString("10+10"), 0));
 
 var input = window.document.getElementById("input");
 var form = window.document.getElementById("form");
@@ -63,13 +65,14 @@ function processSubmission(e) {
   e.preventDefault();
   const value = calculateResult(input.value);
   if (!error) {
+    previousAnswer = value;
     input.value = value;
   }
   error = false;
 }
 
 function calculateResult(userInput) {
-  return evaluate(encodeString(userInput));
+  return evaluate(encodeString(userInput), previousAnswer);
 }
 
 window.addEventListener("keyup", () => {
