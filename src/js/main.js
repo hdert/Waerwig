@@ -77,8 +77,6 @@ const {
   },
 });
 
-console.log(evaluate(encodeString("10+10"), 0));
-
 form.addEventListener("submit", processSubmission);
 
 function processSubmission(e) {

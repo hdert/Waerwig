@@ -9,7 +9,7 @@ const Error = error{
     Keywords,
 };
 
-extern fn inputError([*:0]const u8, usize) void;
+extern fn inputError([*]const u8, usize) void;
 
 extern fn handleAnswer([*]const u8, usize, f64) void;
 
@@ -24,11 +24,83 @@ pub const ErrorHandler = struct {
         location: ?[3]usize,
         equation: ?[]const u8,
     ) !void {
-        _ = equation;
-        _ = location;
-        _ = self;
-        const error_name = @errorName(err);
-        inputError(error_name.ptr, error_name.len);
+        const E = Cal.Error;
+        const error_message = switch (err) {
+            E.InvalidOperator,
+            E.Comma,
+            => "You have entered an invalid operator\n",
+            E.InvalidKeyword => "You have entered an invalid keyword\n",
+            E.DivisionByZero => "Cannot divide by zero\n",
+            E.EmptyInput => return, // Silent error
+            E.SequentialOperators => "You cannot enter sequential operators\n",
+            E.EndsWithOperator => "You cannot finish with an operator\n",
+            E.StartsWithOperator => "You cannot start with an operator\n",
+            E.ParenEmptyInput => "You cannot have an empty parenthesis block\n",
+            E.ParenStartsWithOperator => "You cannot start a parentheses block with an operator\n",
+            E.ParenEndsWithOperator => "You cannot end a parentheses block with an operator\n",
+            E.ParenMismatched,
+            E.ParenMismatchedClose,
+            E.ParenMismatchedStart,
+            => "Mismatched parentheses!\n",
+            E.InvalidFloat => "You cannot have more than one period in a floating point number\n",
+            E.FnUnexpectedArgSize => "You haven't passed the correct number of arguments to this function\n",
+            E.FnArgBoundsViolated => "Your arguments aren't within the range that this function expected\n",
+            E.FnArgInvalid => "Your argument to this function is invalid\n",
+            else => @errorName(err),
+        };
+        var message: []const u8 = undefined;
+        if (location) |l| {
+            switch (err) {
+                E.DivisionByZero, E.EmptyInput => {
+                    message = std.fmt.allocPrint(
+                        self.allocator,
+                        "<p class='mb-0'>{s}</p>",
+                        .{error_message},
+                    ) catch |e| {
+                        const error_name = @errorName(e);
+                        inputError(error_name.ptr, error_name.len);
+                        return;
+                    };
+                },
+                else => {
+                    std.debug.assert(l[1] >= l[0]);
+                    const eq = equation orelse return;
+
+                    message = std.fmt.allocPrint(
+                        self.allocator,
+                        \\<p class='fw-light mb-0'>
+                        \\  {s}
+                        \\  <span class='fw-bold'>{s}</span>
+                        \\  {s}
+                        \\</p>
+                        \\<p class='mb-0'>{s}</p>
+                    ,
+                        .{
+                            eq[0..l[0]],
+                            eq[l[0]..l[1]],
+                            eq[l[1]..l[2]],
+                            error_message,
+                        },
+                    ) catch |e| {
+                        const error_name = @errorName(e);
+                        inputError(error_name.ptr, error_name.len);
+                        return;
+                    };
+                },
+            }
+        } else {
+            message = std.fmt.allocPrint(
+                self.allocator,
+                "<p class='mb-0'>{s}</p>",
+                .{error_message},
+            ) catch |e| {
+                const error_name = @errorName(e);
+                inputError(error_name.ptr, error_name.len);
+                return;
+            };
+        }
+        defer self.allocator.free(message);
+        inputError(message.ptr, message.len);
     }
 
     pub fn init() Self {
