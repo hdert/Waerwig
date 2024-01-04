@@ -57,7 +57,6 @@ const {
     },
     handleAnswer: (pointer, length, result) => {
       const string = decodeString(pointer, length);
-      previousAnswer = result;
       const text =
         "<div class='alert alert-dark mb-0 text-end' data-bs-theme='dark' role='alert'>" +
         "<p class='fw-light mb-0'>" +
@@ -68,6 +67,7 @@ const {
         "</p>" +
         "</div>";
       if (finalCalculation) {
+        previousAnswer = result;
         upperRow.insertAdjacentHTML("beforeend", text);
         input.value = "";
       } else {
