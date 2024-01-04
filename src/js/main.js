@@ -69,7 +69,10 @@ const {
       if (finalCalculation) {
         previousAnswer = result;
         const updateHeight =
-          upperRow.scrollHeight - upperRow.scrollTop === upperRow.clientHeight;
+          Math.abs(
+            upperRow.scrollHeight - upperRow.clientHeight - upperRow.scrollTop
+          ) < 2;
+
         upperRow.insertAdjacentHTML("beforeend", text);
         input.value = "";
         if (updateHeight) upperRow.scrollTop = upperRow.scrollHeight;
