@@ -1,1 +1,14 @@
 @use "_modules/variables" as *;
+
+#upper-row {
+  flex-flow: column nowrap;
+  height: 45vh;
+  // min-height: 45vh;
+  // max-height: 45vh;
+  // background-color: #1a1d20;
+  // height: 100%;
+}
+
+#upper-row > :first-child {
+  margin-top: auto;
+}

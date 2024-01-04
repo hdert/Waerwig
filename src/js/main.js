@@ -68,8 +68,11 @@ const {
         "</div>";
       if (finalCalculation) {
         previousAnswer = result;
+        const updateHeight =
+          upperRow.scrollHeight - upperRow.scrollTop === upperRow.clientHeight;
         upperRow.insertAdjacentHTML("beforeend", text);
         input.value = "";
+        if (updateHeight) upperRow.scrollTop = upperRow.scrollHeight;
       } else {
         lowerRow.innerHTML = text;
       }

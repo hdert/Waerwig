@@ -4,9 +4,9 @@ html(lang="en")
     +head("Hdert's General Purpose Web Calculator", "A general purpose calculator written in Zig, compiled to WebAssembly, now on the web!", "../img/icons/calculator-fill.png", false, "index", "An image of a calculator")
     body.min-vh-100.d-flex.flex-column.text-light
         .container-fluid.vh-100
-            .justify-content-center.d-flex.flex-wrap.align-content-center.vh-100
-                .col-12.col-sm-8.d-flex.flex-wrap.border-secondary.border.rounded
-                    .row.w-100.ms-0#upper-row
+            .justify-content-center.d-flex.flex-wrap.vh-100.align-items-start
+                .col-12.col-sm-8.d-flex.flex-wrap.mt-3
+                    .row.w-100.ms-0#upper-row.overflow-scroll
                     .row.w-100.ms-0
                         form#form.col-12.p-0
                             .input-group 
