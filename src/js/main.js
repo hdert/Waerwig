@@ -2,11 +2,16 @@
 /// - Save and reload equations
 /// - Make it look more like a fullscreen calculator/speedcrunch
 /// - Make upstream support exponential notation
+/// - Allow copy of both equation and result
+/// - Allow in place editing of equation and waterfall of results
+/// - Allow copy edit of equation without waterfall of results
 
 var previousAnswer = 0;
 var finalCalculation = false;
 var input = document.getElementById("input");
+var inputLabel = document.getElementById("inputLabel");
 var form = document.getElementById("form");
+var submit = document.getElementById("submit");
 var upperRow = document.getElementById("upper-row");
 var lowerRow = document.getElementById("lower-row");
 
@@ -99,3 +104,8 @@ window.addEventListener("keyup", () => {
   finalCalculation = false;
   calculateResult(input.value);
 });
+
+input.disabled = false;
+inputLabel.innerText = "Input";
+input.focus();
+submit.disabled = false;

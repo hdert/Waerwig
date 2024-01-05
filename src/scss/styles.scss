@@ -3,10 +3,14 @@
 #upper-row {
   flex-flow: column nowrap;
   height: 45vh;
-  // min-height: 45vh;
-  // max-height: 45vh;
-  // background-color: #1a1d20;
-  // height: 100%;
+  mask: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 1) 0,
+      rgba(0, 0, 0, 1) 87%,
+      rgba(0, 0, 0, 0) 92%,
+      rgba(0, 0, 0, 0) 0
+    )
+    100% 50% / 100% 100% repeat-x;
 }
 
 #upper-row > :first-child {
