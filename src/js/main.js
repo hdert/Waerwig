@@ -123,6 +123,7 @@ function calculateResult(userInput) {
 }
 
 window.addEventListener("keyup", () => {
+  if (input.value.trim() == "") return;
   finalCalculation = false;
   calculateResult(input.value);
 });

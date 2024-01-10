@@ -25,29 +25,8 @@ pub const ErrorHandler = struct {
         equation: ?[]const u8,
     ) !void {
         const E = Cal.Error;
-        const error_message = switch (err) {
-            E.InvalidOperator,
-            E.Comma,
-            => "You have entered an invalid operator\n",
-            E.InvalidKeyword => "You have entered an invalid keyword\n",
-            E.DivisionByZero => "Cannot divide by zero\n",
-            E.EmptyInput => return, // Silent error
-            E.SequentialOperators => "You cannot enter sequential operators\n",
-            E.EndsWithOperator => "You cannot finish with an operator\n",
-            E.StartsWithOperator => "You cannot start with an operator\n",
-            E.ParenEmptyInput => "You cannot have an empty parenthesis block\n",
-            E.ParenStartsWithOperator => "You cannot start a parentheses block with an operator\n",
-            E.ParenEndsWithOperator => "You cannot end a parentheses block with an operator\n",
-            E.ParenMismatched,
-            E.ParenMismatchedClose,
-            E.ParenMismatchedStart,
-            => "Mismatched parentheses!\n",
-            E.InvalidFloat => "You have entered an invalid number\n",
-            E.FnUnexpectedArgSize => "You haven't passed the correct number of arguments to this function\n",
-            E.FnArgBoundsViolated => "Your arguments aren't within the range that this function expected\n",
-            E.FnArgInvalid => "Your argument to this function is invalid\n",
-            else => @errorName(err),
-        };
+        const error_message = Cal.errorDescription(err) catch @errorName(err);
+
         var message: []const u8 = undefined;
         if (location) |l| {
             switch (err) {
@@ -124,19 +103,14 @@ export fn evaluate(input: [*:0]const u8, previousInput: f64) void {
     defer allocator.free(slice);
     const error_handler = ErrorHandler.init();
 
-    var equation = Cal.Equation.init(
+    var equation = Cal.init(
         allocator,
-        null,
-        null,
+        &.{Addons.registerKeywords},
     ) catch |err| {
         try error_handler.handleError(err, null, null);
         return;
     };
     defer equation.free();
-    Addons.registerKeywords(&equation) catch |err| {
-        try error_handler.handleError(err, null, null);
-        return;
-    };
 
     equation.registerPreviousAnswer(previousInput) catch |err| {
         try error_handler.handleError(err, null, null);
