@@ -6,7 +6,7 @@
     "css-lint": "stylelint src/scss/ || echo",
     "css-prefix": "postcss --replace dist/*.css --use autoprefixer --map",
     "css-purge": "purgecss --keyframes --variables --output dist/ --config purgecss.config.js",
-    "css": "run-s css-prefix css-purge css-lint",
+    "css": "run-s css-lint",
     "start": "parcel serve --dist-dir 'dev/' './src/pug/*.pug'",
     "preparcel-build": "./.bin/preparcel-build",
     "parcel-build": "parcel build --dist-dir 'dist/' './src/pug/*.pug'",
@@ -21,6 +21,7 @@
     "bootstrap-icons": "^1.8.1"
   },
   "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^5.0.0",
     "@parcel/packager-raw-url": "2.11.0",
     "@parcel/packager-xml": "^2.11.0",
     "@parcel/transformer-pug": "2.11.0",
