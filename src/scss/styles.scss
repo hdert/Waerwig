@@ -16,3 +16,9 @@
 #upper-row > :first-child {
   margin-top: auto;
 }
+
+.equation,
+.result {
+  text-decoration: none;
+  color: $light;
+}

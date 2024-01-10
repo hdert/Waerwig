@@ -6,6 +6,8 @@
 /// - Allow in place editing of equation and waterfall of results
 /// - Allow copy edit of equation without waterfall of results
 
+import Tooltip from "bootstrap/js/dist/tooltip";
+
 var previousAnswer = 0;
 var finalCalculation = false;
 var input = document.getElementById("input");
@@ -62,15 +64,22 @@ const {
     },
     handleAnswer: (pointer, length, result) => {
       const string = decodeString(pointer, length);
-      const text =
-        "<div class='alert alert-dark mb-0 text-end' data-bs-theme='dark' role='alert'>" +
-        "<p class='fw-light mb-0'>" +
+      var div = document.createElement("div");
+      div.innerHTML =
+        "<p class='mb-0'><a href='#' data-bs-toggle='tooltip' data-bs-title='Copy Equation' class='fw-light equation'>" +
         string +
-        "</p>" +
-        "<p class='mb-0'>" +
+        "</a></p>" +
+        "<p class='mb-0'><a href='#' data-bs-toggle='tooltip' data-bs-title='Copy Result' class='result'>" +
         result +
-        "</p>" +
-        "</div>";
+        "</a></p>";
+      div.classList.add("alert", "alert-dark", "mb-0", "text-end");
+      div.setAttribute("role", "alert");
+      const equations = div.getElementsByClassName("equation");
+      const equation_a = equations[0];
+      new Tooltip(equation_a);
+      const results = div.getElementsByClassName("result");
+      const result_a = results[0];
+      new Tooltip(result_a);
       if (finalCalculation) {
         previousAnswer = result;
         const updateHeight =
@@ -78,12 +87,25 @@ const {
             upperRow.scrollHeight - upperRow.clientHeight - upperRow.scrollTop
           ) < 2;
 
-        upperRow.insertAdjacentHTML("beforeend", text);
+        upperRow.appendChild(div);
         input.value = "";
         if (updateHeight) upperRow.scrollTop = upperRow.scrollHeight;
       } else {
-        lowerRow.innerHTML = text;
+        lowerRow.replaceChildren(div);
       }
+      const set_copied = (e) => {
+        var element = e.target;
+        navigator.clipboard.writeText(element.innerText).then(() => {
+          const original_text = element.getAttribute("data-bs-title");
+          const tooltip = Tooltip.getInstance(element);
+          tooltip.setContent({ ".tooltip-inner": "Copied!" });
+          element.addEventListener("hidden.bs.tooltip", () => {
+            tooltip.setContent({ ".tooltip-inner": original_text });
+          });
+        });
+      };
+      equation_a.addEventListener("click", set_copied);
+      result_a.addEventListener("click", set_copied);
     },
   },
 });

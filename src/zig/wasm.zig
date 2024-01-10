@@ -42,7 +42,7 @@ pub const ErrorHandler = struct {
             E.ParenMismatchedClose,
             E.ParenMismatchedStart,
             => "Mismatched parentheses!\n",
-            E.InvalidFloat => "You cannot have more than one period in a floating point number\n",
+            E.InvalidFloat => "You have entered an invalid number\n",
             E.FnUnexpectedArgSize => "You haven't passed the correct number of arguments to this function\n",
             E.FnArgBoundsViolated => "Your arguments aren't within the range that this function expected\n",
             E.FnArgInvalid => "Your argument to this function is invalid\n",
