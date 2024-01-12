@@ -2,7 +2,7 @@
 /// - Save and reload equations
 /// - Make it look more like a fullscreen calculator/speedcrunch
 /// - Allow in place editing of equation and waterfall of results
-/// - Fix text overflow
+/// - Fix text overflow messing with tooltips
 "use strict";
 
 import Tooltip from "bootstrap/js/dist/tooltip";
@@ -82,12 +82,13 @@ const {
         "text-end",
         "d-flex",
         "justify-content-end",
-        "p-sm-0"
+        "p-sm-0",
+        "min-width-0"
       );
       div.setAttribute("role", "alert");
       const buttons =
         "<div class='d-flex flex-sm-column justify-content-sm-around ms-sm-2 py-sm-2 flex-row align-items-center'>" +
-        "<button type='button' class='btn btn-outline-primary p-6 p-sm-1 lh-1 order-sm-0 order-1' title='Edit' aria-label='Edit'>" +
+        "<button type='button' class='btn btn-outline-primary p-6 p-sm-1 lh-1 order-sm-0 order-1 me-1 me-sm-0' title='Edit' aria-label='Edit'>" +
         '<svg focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg>' +
         "</button>" +
         "<button type='button' class='btn btn-outline-primary p-6 p-sm-1 lh-1 order-sm-1 order-0 me-1 me-sm-0' title='Copy to Equation' aria-label='Copy to Equation'>" +
@@ -95,9 +96,9 @@ const {
         "</button>" +
         "</div>";
       div.innerHTML =
-        "<div class='p-sm-3'>" +
-        "<p class='mb-0'>" +
-        "<a href='#' data-bs-toggle='tooltip' data-bs-title='Copy Equation' class='fh-light text-decoration-none text-light equation'>" +
+        "<div class='p-sm-3 min-width-0'>" +
+        "<p class='mb-0 overflow-x-auto'>" +
+        "<a href='#' data-bs-toggle='tooltip' data-bs-title='Copy Equation' class='fw-light text-decoration-none text-light equation'>" +
         string +
         "</a>" +
         "</p>" +
