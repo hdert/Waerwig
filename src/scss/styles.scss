@@ -17,8 +17,6 @@
   margin-top: auto;
 }
 
-.equation,
-.result {
-  text-decoration: none;
-  color: $light;
+.p-6 {
+  padding: ($spacer * 0.75);
 }
