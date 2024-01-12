@@ -23,7 +23,18 @@ var submit = document.getElementById("submit");
 var upperRow = document.getElementById("upper-row");
 var lowerRow = document.getElementById("lower-row");
 
-const copy_text = (e) => {
+// https://stackoverflow.com/a/17546215
+var DOMtext = document.createTextNode("text");
+var DOMnative = document.createElement("span");
+DOMnative.appendChild(DOMtext);
+
+const sanitizeForHtml = (input, length) => {
+  DOMtext.nodeValue = decodeString(input, length);
+  const text = encodeString(DOMnative.innerHTML);
+  return text;
+};
+
+const copyText = (e) => {
   var element = e.target;
   navigator.clipboard.writeText(element.innerText).then(() => {
     const original_text = element.getAttribute("data-bs-title");
@@ -66,10 +77,7 @@ const print = (pointer, length) => {
   console.log(`${string}`);
 };
 
-// Example user input:
-// a/sdfasdfSf<div style='background-color:#fff;height:200px;font-size:7rem;color:#000;'>ur mom</div>
 const inputError = (pointer, length) => {
-  // This string has untrustable unsanitized user input mixed in with html
   const string = decodeString(pointer, length);
   lowerRow.innerHTML =
     "<div class='alert alert-danger mb-0' data-bs-theme='dark' role='alert'>" +
@@ -83,8 +91,8 @@ const addTooltipsToDiv = (d) => {
   var anchor_result = anchors[1];
   new Tooltip(anchor_equation);
   new Tooltip(anchor_result);
-  anchor_equation.addEventListener("click", copy_text);
-  anchor_result.addEventListener("click", copy_text);
+  anchor_equation.addEventListener("click", copyText);
+  anchor_result.addEventListener("click", copyText);
 };
 
 const createAndPushCardElement = (
@@ -180,6 +188,7 @@ const {
     print: print,
     inputError: inputError,
     handleAnswer: handleAnswer,
+    sanitizeForHtml: sanitizeForHtml,
   },
 });
 

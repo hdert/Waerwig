@@ -11,6 +11,8 @@ const Error = error{
 
 extern fn inputError([*]const u8, usize) void;
 
+extern fn sanitizeForHtml([*]const u8, usize) [*:0]const u8;
+
 extern fn handleAnswer([*]const u8, usize, f64, bool) void;
 
 pub const ErrorHandler = struct {
@@ -48,8 +50,15 @@ pub const ErrorHandler = struct {
                 else => {
                     std.debug.assert(l[1] >= l[0]);
                     const eq = equation orelse return; // Unsafe
+                    const pre_error = eq[0..l[0]]; // Safe
+                    const in_error_slice = eq[l[0]..l[1]];
+                    const in_error = std.mem.span(sanitizeForHtml(in_error_slice.ptr, in_error_slice.len)); // Safe
+                    defer self.allocator.free(in_error);
+                    const post_error_slice = eq[l[1]..l[2]];
+                    const post_error = std.mem.span(sanitizeForHtml(post_error_slice.ptr, post_error_slice.len)); // Safe
+                    defer self.allocator.free(post_error);
 
-                    message = std.fmt.allocPrint( // Unsafe
+                    message = std.fmt.allocPrint( // Safe
                         self.allocator,
                         \\<p class='fw-light mb-0'>
                         \\  {s}
@@ -59,9 +68,9 @@ pub const ErrorHandler = struct {
                         \\<p class='mb-0'>{s}</p>
                     ,
                         .{
-                            eq[0..l[0]], // Unsafe
-                            eq[l[0]..l[1]], // Unsafe
-                            eq[l[1]..l[2]], // Unsafe
+                            pre_error, // Safe
+                            in_error, // Safe
+                            post_error, // Safe
                             error_message, // Safe
                         },
                     ) catch |e| {
@@ -83,7 +92,7 @@ pub const ErrorHandler = struct {
             };
         }
         defer self.allocator.free(message);
-        inputError(message.ptr, message.len); // Unsafe
+        inputError(message.ptr, message.len); // Safe
     }
 
     pub fn init() Self {
