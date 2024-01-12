@@ -26,30 +26,30 @@ pub const ErrorHandler = struct {
     ) !void {
         if (err == Allocator.Error.OutOfMemory) {
             const message = @errorName(err);
-            inputError(message.ptr, message.len);
+            inputError(message.ptr, message.len); // Safe
         }
         const E = Cal.Error;
-        const error_message = Cal.errorDescription(err) catch @errorName(err);
+        const error_message = Cal.errorDescription(err) catch @errorName(err); // Safe
 
         var message: []const u8 = undefined;
         if (location) |l| {
             switch (err) {
                 E.DivisionByZero, E.EmptyInput => {
-                    message = std.fmt.allocPrint(
+                    message = std.fmt.allocPrint( // Safe
                         self.allocator,
                         "<p class='mb-0'>{s}</p>",
-                        .{error_message},
+                        .{error_message}, // Safe
                     ) catch |e| {
-                        const error_name = @errorName(e);
-                        inputError(error_name.ptr, error_name.len);
+                        const error_name = @errorName(e); // Safe
+                        inputError(error_name.ptr, error_name.len); // Safe
                         return;
                     };
                 },
                 else => {
                     std.debug.assert(l[1] >= l[0]);
-                    const eq = equation orelse return;
+                    const eq = equation orelse return; // Unsafe
 
-                    message = std.fmt.allocPrint(
+                    message = std.fmt.allocPrint( // Unsafe
                         self.allocator,
                         \\<p class='fw-light mb-0'>
                         \\  {s}
@@ -59,31 +59,31 @@ pub const ErrorHandler = struct {
                         \\<p class='mb-0'>{s}</p>
                     ,
                         .{
-                            eq[0..l[0]],
-                            eq[l[0]..l[1]],
-                            eq[l[1]..l[2]],
-                            error_message,
+                            eq[0..l[0]], // Unsafe
+                            eq[l[0]..l[1]], // Unsafe
+                            eq[l[1]..l[2]], // Unsafe
+                            error_message, // Safe
                         },
                     ) catch |e| {
-                        const error_name = @errorName(e);
-                        inputError(error_name.ptr, error_name.len);
+                        const error_name = @errorName(e); // Safe
+                        inputError(error_name.ptr, error_name.len); // Safe
                         return;
                     };
                 },
             }
         } else {
-            message = std.fmt.allocPrint(
+            message = std.fmt.allocPrint( // Safe
                 self.allocator,
                 "<p class='mb-0'>{s}</p>",
-                .{error_message},
+                .{error_message}, // Safe
             ) catch |e| {
-                const error_name = @errorName(e);
-                inputError(error_name.ptr, error_name.len);
+                const error_name = @errorName(e); // Safe
+                inputError(error_name.ptr, error_name.len); // Safe
                 return;
             };
         }
         defer self.allocator.free(message);
-        inputError(message.ptr, message.len);
+        inputError(message.ptr, message.len); // Unsafe
     }
 
     pub fn init() Self {

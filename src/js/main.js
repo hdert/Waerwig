@@ -1,8 +1,11 @@
 /// TODO:
 /// - Save and reload equations
-/// - Make it look more like a fullscreen calculator/speedcrunch
+///   - Decide on a data structure to store equations and results
+///   - Modularize code that creates history blocks
+/// - Change alerts to what they should be, like cards
 /// - Allow in place editing of equation and waterfall of results
 /// - Fix text overflow messing with tooltips
+/// - Make it look more like a fullscreen calculator/speedcrunch
 "use strict";
 
 import Tooltip from "bootstrap/js/dist/tooltip";
@@ -61,6 +64,7 @@ const print = (pointer, length) => {
 };
 
 const inputError = (pointer, length) => {
+  // This string has untrustable unsanitized user input mixed in with html
   const string = decodeString(pointer, length);
   lowerRow.innerHTML =
     "<div class='alert alert-danger mb-0' data-bs-theme='dark' role='alert'>" +
@@ -78,8 +82,16 @@ const addTooltipsToDiv = (d) => {
   anchor_result.addEventListener("click", copy_text);
 };
 
-const handleAnswer = (pointer, length, result) => {
-  const string = decodeString(pointer, length);
+const createAndPushCardElement = (
+  equation,
+  result,
+  addToHistory,
+  addToCurrent
+) => {
+  // If none of these are true, what is the point of printing to the screen?
+  if (!(addToHistory || addToCurrent)) {
+    return;
+  }
   var div = document.createElement("div");
   div.classList.add(
     "alert",
@@ -105,7 +117,7 @@ const handleAnswer = (pointer, length, result) => {
     "<div class='p-sm-3 min-width-0'>" +
     "<p class='mb-0 overflow-x-auto'>" +
     "<a href='#' data-bs-toggle='tooltip' data-bs-title='Copy Equation' class='fw-light text-decoration-none text-light equation'>" +
-    string +
+    equation +
     "</a>" +
     "</p>" +
     "<p class='mb-0'>" +
@@ -115,23 +127,24 @@ const handleAnswer = (pointer, length, result) => {
     "</p>" +
     "</div>";
   addTooltipsToDiv(div);
-  if (finalCalculation) {
+  if (addToHistory) {
+    // Adjust div for use as history card
     var final_div = div.cloneNode(true);
     addTooltipsToDiv(final_div);
     final_div.classList.remove("justify-content-end");
     final_div.classList.add("justify-content-between");
     final_div.insertAdjacentHTML("afterbegin", buttons);
+    // Add event listeners to buttons
     var control_buttons = final_div.getElementsByTagName("button");
     var button_edit = control_buttons[0];
     var button_copy = control_buttons[1];
     button_copy.addEventListener("click", () => {
-      input.value += string;
+      input.value += equation;
       finalCalculation = false;
       calculateResult(input.value);
       input.focus();
     });
-    previousAnswer = result;
-    previousEquation = string;
+    // Deal with updating scroll height
     const updateHeight =
       Math.abs(
         upperRow.scrollHeight - upperRow.clientHeight - upperRow.scrollTop
@@ -140,7 +153,18 @@ const handleAnswer = (pointer, length, result) => {
     input.value = "";
     if (updateHeight) upperRow.scrollTop = upperRow.scrollHeight;
   }
-  lowerRow.replaceChildren(div);
+  if (addToCurrent) lowerRow.replaceChildren(div);
+};
+
+const handleAnswer = (pointer, length, result) => {
+  // This string has trustable unsanitized user input
+  const string = decodeString(pointer, length);
+  createAndPushCardElement(string, result, finalCalculation, true);
+  if (finalCalculation) {
+    previousEquation = string;
+    previousAnswer = result;
+    finalCalculation = false;
+  }
 };
 
 const {
@@ -159,9 +183,6 @@ function processSubmission(e) {
   e.preventDefault();
   finalCalculation = true;
   if (input.value.trim() == "" && previousEquation !== null) {
-    finalCalculation = false;
-    calculateResult(previousEquation);
-    finalCalculation = true;
     calculateResult(previousEquation);
   } else {
     calculateResult(input.value);
