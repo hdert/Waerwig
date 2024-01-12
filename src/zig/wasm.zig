@@ -24,6 +24,10 @@ pub const ErrorHandler = struct {
         location: ?[3]usize,
         equation: ?[]const u8,
     ) !void {
+        if (err == Allocator.Error.OutOfMemory) {
+            const message = @errorName(err);
+            inputError(message.ptr, message.len);
+        }
         const E = Cal.Error;
         const error_message = Cal.errorDescription(err) catch @errorName(err);
 
