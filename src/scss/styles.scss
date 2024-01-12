@@ -11,10 +11,10 @@
       rgba(0, 0, 0, 0) 0
     )
     100% 50% / 100% 100% repeat-x;
-}
 
-#upper-row > :first-child {
-  margin-top: auto;
+  > :first-child {
+    margin-top: auto;
+  }
 }
 
 .p-6 {
