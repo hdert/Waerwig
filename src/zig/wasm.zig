@@ -11,7 +11,7 @@ const Error = error{
 
 extern fn inputError([*]const u8, usize) void;
 
-extern fn handleAnswer([*]const u8, usize, f64) void;
+extern fn handleAnswer([*]const u8, usize, f64, bool) void;
 
 pub const ErrorHandler = struct {
     const Self = @This();
@@ -102,7 +102,7 @@ export fn alloc(length: usize) ?[*]u8 {
         null;
 }
 
-export fn evaluate(input: [*:0]const u8, previousInput: f64) void {
+export fn evaluate(input: [*:0]const u8, previousInput: f64, addToHistory: bool) void {
     const slice = std.mem.span(input);
     defer allocator.free(slice);
     const error_handler = ErrorHandler.init();
@@ -129,5 +129,5 @@ export fn evaluate(input: [*:0]const u8, previousInput: f64) void {
         try error_handler.handleError(err, null, null);
         return;
     };
-    handleAnswer(infix_equation.data.ptr, infix_equation.data.len, result);
+    handleAnswer(infix_equation.data.ptr, infix_equation.data.len, result, addToHistory);
 }

@@ -2,6 +2,7 @@
 /// - Save and reload equations
 ///   - Decide on a data structure to store equations and results
 ///   - Modularize code that creates history blocks
+/// - Eliminate as many global variables as possible
 /// - Change alerts to what they should be, like cards
 /// - Allow in place editing of equation and waterfall of results
 /// - Fix text overflow messing with tooltips
@@ -10,9 +11,11 @@
 
 import Tooltip from "bootstrap/js/dist/tooltip";
 
+// Actual Globals that need to be eliminated
+// Have one global history struct instead
 var previousAnswer = 0;
 var previousEquation = null;
-var finalCalculation = false;
+// Global 'Constants' to manipulate the dom quicker
 var input = document.getElementById("input");
 var inputLabel = document.getElementById("inputLabel");
 var form = document.getElementById("form");
@@ -63,6 +66,8 @@ const print = (pointer, length) => {
   console.log(`${string}`);
 };
 
+// Example user input:
+// a/sdfasdfSf<div style='background-color:#fff;height:200px;font-size:7rem;color:#000;'>ur mom</div>
 const inputError = (pointer, length) => {
   // This string has untrustable unsanitized user input mixed in with html
   const string = decodeString(pointer, length);
@@ -99,7 +104,6 @@ const createAndPushCardElement = (
     "mb-0",
     "text-end",
     "d-flex",
-    "justify-content-end",
     "p-sm-0",
     "min-width-0"
   );
@@ -126,12 +130,10 @@ const createAndPushCardElement = (
     "</a>" +
     "</p>" +
     "</div>";
-  addTooltipsToDiv(div);
   if (addToHistory) {
     // Adjust div for use as history card
-    var final_div = div.cloneNode(true);
+    var final_div = addToCurrent ? div.cloneNode(true) : div;
     addTooltipsToDiv(final_div);
-    final_div.classList.remove("justify-content-end");
     final_div.classList.add("justify-content-between");
     final_div.insertAdjacentHTML("afterbegin", buttons);
     // Add event listeners to buttons
@@ -140,8 +142,7 @@ const createAndPushCardElement = (
     var button_copy = control_buttons[1];
     button_copy.addEventListener("click", () => {
       input.value += equation;
-      finalCalculation = false;
-      calculateResult(input.value);
+      calculateResult(input.value, false);
       input.focus();
     });
     // Deal with updating scroll height
@@ -153,17 +154,20 @@ const createAndPushCardElement = (
     input.value = "";
     if (updateHeight) upperRow.scrollTop = upperRow.scrollHeight;
   }
-  if (addToCurrent) lowerRow.replaceChildren(div);
+  if (addToCurrent) {
+    div.classList.add("justify-content-end");
+    addTooltipsToDiv(div);
+    lowerRow.replaceChildren(div);
+  }
 };
 
-const handleAnswer = (pointer, length, result) => {
+const handleAnswer = (pointer, length, result, addToHistory) => {
   // This string has trustable unsanitized user input
   const string = decodeString(pointer, length);
-  createAndPushCardElement(string, result, finalCalculation, true);
-  if (finalCalculation) {
+  createAndPushCardElement(string, result, addToHistory, true);
+  if (addToHistory) {
     previousEquation = string;
     previousAnswer = result;
-    finalCalculation = false;
   }
 };
 
@@ -181,18 +185,16 @@ const {
 
 function processSubmission(e) {
   e.preventDefault();
-  finalCalculation = true;
   if (input.value.trim() == "" && previousEquation !== null) {
-    calculateResult(previousEquation);
+    calculateResult(previousEquation, true);
   } else {
-    calculateResult(input.value);
+    calculateResult(input.value, true);
   }
-  finalCalculation = false;
   input.focus();
 }
 
-function calculateResult(userInput) {
-  return evaluate(encodeString(userInput), previousAnswer);
+function calculateResult(userInput, addToHistory) {
+  return evaluate(encodeString(userInput), previousAnswer, addToHistory);
 }
 
 function main() {
@@ -200,8 +202,7 @@ function main() {
 
   window.addEventListener("keyup", () => {
     if (input.value.trim() == "") return;
-    finalCalculation = false;
-    calculateResult(input.value);
+    calculateResult(input.value, false);
   });
 
   input.disabled = false;
