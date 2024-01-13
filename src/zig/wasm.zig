@@ -111,6 +111,16 @@ export fn alloc(length: usize) ?[*]u8 {
         null;
 }
 
+fn registerKeywords(equation: *Cal) !void {
+    try equation.addKeywords(&.{
+        "Infinity",
+        "NaN",
+    }, &.{
+        .{ .Constant = std.math.inf(f64) },
+        .{ .Constant = std.math.nan(f64) },
+    });
+}
+
 export fn evaluate(input: [*:0]const u8, previousInput: f64, addToHistory: bool) void {
     const slice = std.mem.span(input);
     defer allocator.free(slice);
@@ -118,7 +128,7 @@ export fn evaluate(input: [*:0]const u8, previousInput: f64, addToHistory: bool)
 
     var equation = Cal.init(
         allocator,
-        &.{Addons.registerKeywords},
+        &.{ Addons.registerKeywords, registerKeywords },
     ) catch |err| {
         try error_handler.handleError(err, null, null);
         return;
