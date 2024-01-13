@@ -102,7 +102,7 @@ pub const ErrorHandler = struct {
     }
 };
 
-extern fn print([*:0]const u8, usize) void;
+extern fn print([*]const u8, usize) void;
 
 export fn alloc(length: usize) ?[*]u8 {
     return if (allocator.alloc(u8, length)) |slice|

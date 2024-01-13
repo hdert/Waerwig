@@ -13,15 +13,28 @@ import Tooltip from "bootstrap/js/dist/tooltip";
 
 // Actual Globals that need to be eliminated
 // Have one global history struct instead
-var previousAnswer = 0;
-var previousEquation = null;
+var history = [];
 // Global 'Constants' to manipulate the dom quicker
 var input = document.getElementById("input");
-var inputLabel = document.getElementById("inputLabel");
+var input_label = document.getElementById("inputLabel");
 var form = document.getElementById("form");
 var submit = document.getElementById("submit");
-var upperRow = document.getElementById("upper-row");
-var lowerRow = document.getElementById("lower-row");
+var upper_row = document.getElementById("upper-row");
+var lower_row = document.getElementById("lower-row");
+
+const updateHistory = (equation, result) => {
+  history.push({ equation: equation, result: result });
+  const json = JSON.stringify(history, (k, v) => {
+    return v === Number.POSITIVE_INFINITY
+      ? "Infinity"
+      : v === Number.NEGATIVE_INFINITY
+      ? "-Infinity"
+      : Number.isNaN(v)
+      ? "NaN"
+      : v;
+  });
+  localStorage.setItem("history", json);
+};
 
 // https://stackoverflow.com/a/17546215
 var DOMtext = document.createTextNode("text");
@@ -79,7 +92,7 @@ const print = (pointer, length) => {
 
 const inputError = (pointer, length) => {
   const string = decodeString(pointer, length);
-  lowerRow.innerHTML =
+  lower_row.innerHTML =
     "<div class='alert alert-danger mb-0' data-bs-theme='dark' role='alert'>" +
     string +
     "</div>";
@@ -154,18 +167,18 @@ const createAndPushCardElement = (
       input.focus();
     });
     // Deal with updating scroll height
-    const updateHeight =
+    const update_height =
       Math.abs(
-        upperRow.scrollHeight - upperRow.clientHeight - upperRow.scrollTop
+        upper_row.scrollHeight - upper_row.clientHeight - upper_row.scrollTop
       ) < 2;
-    upperRow.appendChild(final_div);
+    upper_row.appendChild(final_div);
     input.value = "";
-    if (updateHeight) upperRow.scrollTop = upperRow.scrollHeight;
+    if (update_height) upper_row.scrollTop = upper_row.scrollHeight;
   }
   if (addToCurrent) {
     div.classList.add("justify-content-end");
     addTooltipsToDiv(div);
-    lowerRow.replaceChildren(div);
+    lower_row.replaceChildren(div);
   }
 };
 
@@ -174,8 +187,7 @@ const handleAnswer = (pointer, length, result, addToHistory) => {
   const string = decodeString(pointer, length);
   createAndPushCardElement(string, result, addToHistory, true);
   if (addToHistory) {
-    previousEquation = string;
-    previousAnswer = result;
+    updateHistory(string, result);
   }
 };
 
@@ -194,8 +206,8 @@ const {
 
 function processSubmission(e) {
   e.preventDefault();
-  if (input.value.trim() == "" && previousEquation !== null) {
-    calculateResult(previousEquation, true);
+  if (input.value.trim() == "" && history.length > 0) {
+    calculateResult(history[history.length - 1].equation, true);
   } else {
     calculateResult(input.value, true);
   }
@@ -203,10 +215,27 @@ function processSubmission(e) {
 }
 
 function calculateResult(userInput, addToHistory) {
-  return evaluate(encodeString(userInput), previousAnswer, addToHistory);
+  const previous_answer =
+    history.length > 0 ? history[history.length - 1].result : 0;
+  evaluate(encodeString(userInput), previous_answer, addToHistory);
 }
 
 function main() {
+  // Load history
+  const parsed_history = JSON.parse(localStorage.getItem("history"));
+  for (const calculation of parsed_history ? parsed_history : []) {
+    history.push({
+      equation: calculation.equation,
+      result: calculation.result ? calculation.result : 0,
+    });
+    createAndPushCardElement(
+      calculation.equation,
+      calculation.result !== null ? calculation.result : 0,
+      true,
+      false
+    );
+  }
+
   form.addEventListener("submit", processSubmission);
 
   window.addEventListener("keyup", () => {
@@ -215,7 +244,7 @@ function main() {
   });
 
   input.disabled = false;
-  inputLabel.innerText = "Input";
+  input_label.innerText = "Input";
   submit.disabled = false;
   input.focus();
 }
