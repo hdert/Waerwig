@@ -209,6 +209,7 @@ const handleAnswer = (pointer, length, result, addToHistory) => {
   if (addToHistory) {
     appendToHistory(string, result);
     input.value = "";
+    handleKeyUp();
   }
 };
 
@@ -346,6 +347,7 @@ const editModeHandleAnswer = (string, result) => {
   editing_index = -1;
   input.value = previous_input;
   previous_input = undefined;
+  handleKeyUp();
 };
 
 const editModeProcessSubmission = () => {
