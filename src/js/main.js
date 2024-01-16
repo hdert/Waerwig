@@ -1,19 +1,15 @@
 /// TODO:
-/// - Save and reload equations
-///   - Decide on a data structure to store equations and results
-///   - Modularize code that creates history blocks
-/// - Eliminate as many global variables as possible
 /// - Change alerts to what they should be, like cards
-/// - Allow in place editing of equation and waterfall of results
 /// - Fix text overflow messing with tooltips
 /// - Make it look more like a fullscreen calculator/speedcrunch
 "use strict";
 
 import Tooltip from "bootstrap/js/dist/tooltip";
 
-// Actual Globals that need to be eliminated
-// Have one global history struct instead
 var history = [];
+var edit_mode = false;
+var editing_index = -1;
+var previous_input;
 // Global 'Constants' to manipulate the dom quicker
 var input = document.getElementById("input");
 var input_label = document.getElementById("inputLabel");
@@ -22,8 +18,7 @@ var submit = document.getElementById("submit");
 var upper_row = document.getElementById("upper-row");
 var lower_row = document.getElementById("lower-row");
 
-const updateHistory = (equation, result) => {
-  history.push({ equation: equation, result: result });
+const updateLocalStorage = (start, end) => {
   const json = JSON.stringify(history, (k, v) => {
     return v === Number.POSITIVE_INFINITY
       ? "Infinity"
@@ -36,6 +31,11 @@ const updateHistory = (equation, result) => {
   localStorage.setItem("history", json);
 };
 
+const appendToHistory = (equation, result) => {
+  history.push({ equation: equation, result: result });
+  updateLocalStorage();
+};
+
 // https://stackoverflow.com/a/17546215
 var DOMtext = document.createTextNode("text");
 var DOMnative = document.createElement("span");
@@ -45,19 +45,6 @@ const sanitizeForHtml = (input, length) => {
   DOMtext.nodeValue = decodeString(input, length);
   const text = encodeString(DOMnative.innerHTML);
   return text;
-};
-
-const copyText = (e) => {
-  var element = e.target;
-  navigator.clipboard.writeText(element.innerText).then(() => {
-    const original_text = element.getAttribute("data-bs-title");
-    const tooltip = Tooltip.getInstance(element);
-    tooltip.setContent({ ".tooltip-inner": "Copied!" });
-    element.addEventListener("hidden.bs.tooltip", () => {
-      tooltip.setContent({ ".tooltip-inner": original_text });
-    });
-    input.focus();
-  });
 };
 
 const encodeString = (string) => {
@@ -96,6 +83,19 @@ const inputError = (pointer, length) => {
     "<div class='alert alert-danger mb-0' data-bs-theme='dark' role='alert'>" +
     string +
     "</div>";
+};
+
+const copyText = (e) => {
+  var element = e.target;
+  navigator.clipboard.writeText(element.innerText).then(() => {
+    const original_text = element.getAttribute("data-bs-title");
+    const tooltip = Tooltip.getInstance(element);
+    tooltip.setContent({ ".tooltip-inner": "Copied!" });
+    element.addEventListener("hidden.bs.tooltip", () => {
+      tooltip.setContent({ ".tooltip-inner": original_text });
+    });
+    input.focus();
+  });
 };
 
 const addTooltipsToDiv = (d) => {
@@ -152,6 +152,7 @@ const createAndPushCardElement = (
     "</p>" +
     "</div>";
   if (addToHistory) {
+    const index = upper_row.childElementCount;
     // Adjust div for use as history card
     var final_div = addToCurrent ? div.cloneNode(true) : div;
     addTooltipsToDiv(final_div);
@@ -160,9 +161,17 @@ const createAndPushCardElement = (
     // Add event listeners to buttons
     var control_buttons = final_div.getElementsByTagName("button");
     var button_edit = control_buttons[0];
+    button_edit.addEventListener("click", () => {
+      edit_mode = true;
+      editing_index = index;
+      previous_input = input.value;
+      input.value = history[index].equation;
+      calculateResult(input.value, false);
+      input.focus();
+    });
     var button_copy = control_buttons[1];
     button_copy.addEventListener("click", () => {
-      input.value += equation;
+      input.value += history[index].equation;
       calculateResult(input.value, false);
       input.focus();
     });
@@ -172,7 +181,6 @@ const createAndPushCardElement = (
         upper_row.scrollHeight - upper_row.clientHeight - upper_row.scrollTop
       ) < 2;
     upper_row.appendChild(final_div);
-    input.value = "";
     if (update_height) upper_row.scrollTop = upper_row.scrollHeight;
   }
   if (addToCurrent) {
@@ -185,15 +193,20 @@ const createAndPushCardElement = (
 const handleAnswer = (pointer, length, result, addToHistory) => {
   // This string has trustable unsanitized user input
   const string = decodeString(pointer, length);
+  if (edit_mode && addToHistory) {
+    editModeHandleAnswer(string, result);
+    return;
+  }
   createAndPushCardElement(string, result, addToHistory, true);
   if (addToHistory) {
-    updateHistory(string, result);
+    appendToHistory(string, result);
+    input.value = "";
   }
 };
 
 const {
   instance: {
-    exports: { memory, evaluate, alloc },
+    exports: { memory, evaluate, evaluateUnchecked, alloc },
   },
 } = await WebAssembly.instantiateStreaming(fetch("./Calculator.wasm"), {
   env: {
@@ -206,6 +219,10 @@ const {
 
 function processSubmission(e) {
   e.preventDefault();
+  if (edit_mode) {
+    editModeProcessSubmission();
+    return;
+  }
   if (input.value.trim() == "" && history.length > 0) {
     calculateResult(history[history.length - 1].equation, true);
   } else {
@@ -214,10 +231,17 @@ function processSubmission(e) {
   input.focus();
 }
 
+const getPreviousAnswer = () => {
+  if (editing_index > 0) {
+    return history[editing_index - 1].result;
+  } else if (editing_index != 0 && history.length > 0) {
+    return history[history.length - 1].result;
+  }
+  return 0;
+};
+
 function calculateResult(userInput, addToHistory) {
-  const previous_answer =
-    history.length > 0 ? history[history.length - 1].result : 0;
-  evaluate(encodeString(userInput), previous_answer, addToHistory);
+  evaluate(encodeString(userInput), getPreviousAnswer(), addToHistory);
 }
 
 function main() {
@@ -250,3 +274,54 @@ function main() {
 }
 
 main();
+
+// Edit Mode
+
+const updateResults = (start, newEquation, newResult) => {
+  history[start].equation = newEquation;
+  history[start].result = newResult;
+
+  var previousAnswer = newResult;
+  var i = start + 1;
+  while (i < history.length) {
+    const result_before_edit = history[i].result;
+    const new_result = evaluateUnchecked(
+      encodeString(history[i].equation),
+      previousAnswer
+    );
+    if (result_before_edit == new_result) break;
+    history[i].result = new_result;
+    previousAnswer = new_result;
+    i++;
+  }
+  updateCards(start, i - 1);
+};
+
+const updateCards = (start, end) => {
+  const cards = upper_row.children;
+  cards[start].lastChild.firstChild.firstChild.innerText =
+    history[start].equation;
+  var i = start;
+  while (i <= end) {
+    cards[i].lastChild.lastChild.firstChild.innerText = history[i].result;
+    i++;
+  }
+};
+
+const editModeHandleAnswer = (string, result) => {
+  updateResults(editing_index, string, result);
+  updateLocalStorage();
+  edit_mode = false;
+  editing_index = -1;
+  input.value = previous_input;
+  previous_input = undefined;
+};
+
+const editModeProcessSubmission = () => {
+  if (input.value.trim() == "") {
+    calculateResult(history[editing_index].equation, true);
+  } else {
+    calculateResult(input.value, true);
+  }
+  input.focus();
+};

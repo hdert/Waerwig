@@ -121,6 +121,23 @@ fn registerKeywords(equation: *Cal) !void {
     });
 }
 
+export fn evaluateUnchecked(input: [*:0]const u8, previousInput: f64) f64 {
+    const nan = std.math.nan(f64);
+    const slice = std.mem.span(input);
+    defer allocator.free(slice);
+
+    var equation = Cal.init(
+        allocator,
+        &.{ Addons.registerKeywords, registerKeywords },
+    ) catch return nan;
+    defer equation.free();
+
+    equation.registerPreviousAnswer(previousInput) catch return nan;
+    const infix_equation = equation.newInfixEquation(slice, null) catch return nan;
+
+    return infix_equation.evaluate() catch nan;
+}
+
 export fn evaluate(input: [*:0]const u8, previousInput: f64, addToHistory: bool) void {
     const slice = std.mem.span(input);
     defer allocator.free(slice);
@@ -148,5 +165,10 @@ export fn evaluate(input: [*:0]const u8, previousInput: f64, addToHistory: bool)
         try error_handler.handleError(err, null, null);
         return;
     };
-    handleAnswer(infix_equation.data.ptr, infix_equation.data.len, result, addToHistory);
+    handleAnswer(
+        infix_equation.data.ptr,
+        infix_equation.data.len,
+        result,
+        addToHistory,
+    );
 }
