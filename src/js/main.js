@@ -7,7 +7,6 @@
 import Tooltip from "bootstrap/js/dist/tooltip";
 
 var history = [];
-var edit_mode = false;
 var editing_index = -1;
 var previous_input;
 // Global 'Constants' to manipulate the dom quicker
@@ -17,6 +16,14 @@ var form = document.getElementById("form");
 var submit = document.getElementById("submit");
 var upper_row = document.getElementById("upper-row");
 var lower_row = document.getElementById("lower-row");
+// SVGs
+const edit_svg =
+  '<svg xmlns="http://www.w3.org/2000/svg" aria-label="Submit edited equation" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg>';
+const repeat_svg =
+  '<svg xmlns="http://www.w3.org/2000/svg" aria-label="Repeat last equation" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/></svg>';
+const equal_svg = "=";
+const cancel_svg =
+  '<svg xmlns="http://www.w3.org/2000/svg" aria-label="Cancel editing equation" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg>';
 
 const updateLocalStorage = (start, end) => {
   const json = JSON.stringify(history, (k, v) => {
@@ -162,16 +169,17 @@ const createAndPushCardElement = (
     var control_buttons = final_div.getElementsByTagName("button");
     var button_edit = control_buttons[0];
     button_edit.addEventListener("click", () => {
-      edit_mode = true;
       editing_index = index;
       previous_input = input.value;
       input.value = history[index].equation;
+      submit.innerHTML = edit_svg;
       calculateResult(input.value, false);
       input.focus();
     });
     var button_copy = control_buttons[1];
     button_copy.addEventListener("click", () => {
       input.value += history[index].equation;
+      submit.innerHTML = equal_svg;
       calculateResult(input.value, false);
       input.focus();
     });
@@ -193,7 +201,7 @@ const createAndPushCardElement = (
 const handleAnswer = (pointer, length, result, addToHistory) => {
   // This string has trustable unsanitized user input
   const string = decodeString(pointer, length);
-  if (edit_mode && addToHistory) {
+  if (editing_index >= 0 && addToHistory) {
     editModeHandleAnswer(string, result);
     return;
   }
@@ -219,7 +227,7 @@ const {
 
 function processSubmission(e) {
   e.preventDefault();
-  if (edit_mode) {
+  if (editing_index >= 0) {
     editModeProcessSubmission();
     return;
   }
@@ -231,18 +239,43 @@ function processSubmission(e) {
   input.focus();
 }
 
-const getPreviousAnswer = () => {
+const getPrevious = () => {
   if (editing_index > 0) {
-    return history[editing_index - 1].result;
+    return history[editing_index - 1];
   } else if (editing_index != 0 && history.length > 0) {
-    return history[history.length - 1].result;
+    return history[history.length - 1];
   }
-  return 0;
+  return null;
+};
+
+const getPreviousAnswer = () => {
+  const previous = getPrevious();
+  return previous !== null ? previous.result : 0;
 };
 
 function calculateResult(userInput, addToHistory) {
   evaluate(encodeString(userInput), getPreviousAnswer(), addToHistory);
 }
+
+const handleKeyUp = () => {
+  if (input.value.trim() == "") {
+    const previous = getPrevious();
+    if (previous !== null && editing_index < 0) {
+      calculateResult(previous.equation, false);
+      submit.innerHTML = repeat_svg;
+    } else if (editing_index >= 0) {
+      calculateResult(history[editing_index].equation, false);
+      submit.innerHTML = cancel_svg;
+    }
+    return;
+  }
+  if (editing_index >= 0) {
+    submit.innerHTML = edit_svg;
+  } else {
+    submit.innerHTML = equal_svg;
+  }
+  calculateResult(input.value, false);
+};
 
 function main() {
   // Load history
@@ -261,16 +294,15 @@ function main() {
   }
 
   form.addEventListener("submit", processSubmission);
+  submit.addEventListener("click", processSubmission);
 
-  window.addEventListener("keyup", () => {
-    if (input.value.trim() == "") return;
-    calculateResult(input.value, false);
-  });
+  window.addEventListener("keyup", handleKeyUp);
 
   input.disabled = false;
   input_label.innerText = "Input";
   submit.disabled = false;
   input.focus();
+  handleKeyUp();
 }
 
 main();
@@ -311,7 +343,6 @@ const updateCards = (start, end) => {
 const editModeHandleAnswer = (string, result) => {
   updateResults(editing_index, string, result);
   updateLocalStorage();
-  edit_mode = false;
   editing_index = -1;
   input.value = previous_input;
   previous_input = undefined;
