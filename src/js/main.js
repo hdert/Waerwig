@@ -172,6 +172,8 @@ const createAndPushCardElement = (
       editing_index = index;
       previous_input = input.value;
       input.value = history[index].equation;
+      final_div.classList.add("alert-warning");
+      final_div.classList.remove("alert-dark");
       submit.innerHTML = edit_svg;
       calculateResult(input.value, false);
       input.focus();
@@ -344,6 +346,9 @@ const updateCards = (start, end) => {
 const editModeHandleAnswer = (string, result) => {
   updateResults(editing_index, string, result);
   updateLocalStorage();
+  const div = upper_row.children[editing_index];
+  div.classList.add("alert-dark");
+  div.classList.remove("alert-warning");
   editing_index = -1;
   input.value = previous_input;
   previous_input = undefined;
