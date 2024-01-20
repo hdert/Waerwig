@@ -25,6 +25,69 @@ const equal_svg = "=";
 const cancel_svg =
   '<svg xmlns="http://www.w3.org/2000/svg" aria-label="Cancel editing equation" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg>';
 
+// WASM Imports
+
+// WASM Debug Function
+
+const print = (pointer, length) => {
+  const string = decodeString(pointer, length);
+  console.log(`${string}`);
+};
+
+// WASM Return Functions
+
+const inputError = (pointer, length) => {
+  const string = decodeString(pointer, length);
+  lower_row.innerHTML =
+    "<div class='alert alert-danger mb-0' data-bs-theme='dark' role='alert'>" +
+    string +
+    "</div>";
+};
+
+const handleAnswer = (pointer, length, result, addToHistory) => {
+  // This string has trustable unsanitized user input
+  const string = decodeString(pointer, length);
+  if (editing_index >= 0 && addToHistory) {
+    editModeHandleAnswer(string, result);
+    return;
+  }
+  createAndPushCardElement(string, result, addToHistory, true);
+  if (addToHistory) {
+    appendToHistory(string, result);
+    input.value = "";
+    handleKeyUp();
+  }
+};
+
+// Input Sanitization
+
+// https://stackoverflow.com/a/17546215
+let DOMtext = document.createTextNode("text");
+let DOMnative = document.createElement("span");
+DOMnative.appendChild(DOMtext);
+
+const sanitizeForHtml = (input, length) => {
+  DOMtext.nodeValue = decodeString(input, length);
+  const text = encodeString(DOMnative.innerHTML);
+  return text;
+};
+
+let memory, evaluate, evaluateUnchecked, alloc;
+
+WebAssembly.instantiateStreaming(fetch("./Calculator.wasm"), {
+  env: {
+    print: print,
+    inputError: inputError,
+    handleAnswer: handleAnswer,
+    sanitizeForHtml: sanitizeForHtml,
+  },
+}).then((obj) => {
+  ({ memory, evaluate, evaluateUnchecked, alloc } = obj.instance.exports);
+  main();
+});
+
+// Local Storage and History Functions
+
 const updateLocalStorage = (start, end) => {
   const json = JSON.stringify(history, (k, v) => {
     return v === Number.POSITIVE_INFINITY
@@ -43,16 +106,23 @@ const appendToHistory = (equation, result) => {
   updateLocalStorage();
 };
 
-// https://stackoverflow.com/a/17546215
-let DOMtext = document.createTextNode("text");
-let DOMnative = document.createElement("span");
-DOMnative.appendChild(DOMtext);
-
-const sanitizeForHtml = (input, length) => {
-  DOMtext.nodeValue = decodeString(input, length);
-  const text = encodeString(DOMnative.innerHTML);
-  return text;
+const loadHistory = () => {
+  const parsed_history = JSON.parse(localStorage.getItem("history"));
+  for (const calculation of parsed_history ? parsed_history : []) {
+    history.push({
+      equation: calculation.equation,
+      result: calculation.result ? calculation.result : 0,
+    });
+    createAndPushCardElement(
+      calculation.equation,
+      calculation.result !== null ? calculation.result : 0,
+      true,
+      false
+    );
+  }
 };
+
+// WASM String Helper Functions
 
 const encodeString = (string) => {
   const buffer = new TextEncoder().encode(string);
@@ -79,18 +149,7 @@ const decodeString = (pointer, length) => {
   return new TextDecoder().decode(slice);
 };
 
-const print = (pointer, length) => {
-  const string = decodeString(pointer, length);
-  console.log(`${string}`);
-};
-
-const inputError = (pointer, length) => {
-  const string = decodeString(pointer, length);
-  lower_row.innerHTML =
-    "<div class='alert alert-danger mb-0' data-bs-theme='dark' role='alert'>" +
-    string +
-    "</div>";
-};
+// Event Listener Functions
 
 const copyText = (e) => {
   let element = e.target;
@@ -200,34 +259,6 @@ const createAndPushCardElement = (
   }
 };
 
-const handleAnswer = (pointer, length, result, addToHistory) => {
-  // This string has trustable unsanitized user input
-  const string = decodeString(pointer, length);
-  if (editing_index >= 0 && addToHistory) {
-    editModeHandleAnswer(string, result);
-    return;
-  }
-  createAndPushCardElement(string, result, addToHistory, true);
-  if (addToHistory) {
-    appendToHistory(string, result);
-    input.value = "";
-    handleKeyUp();
-  }
-};
-
-let memory, evaluate, evaluateUnchecked, alloc;
-
-WebAssembly.instantiateStreaming(fetch("./Calculator.wasm"), {
-  env: {
-    print: print,
-    inputError: inputError,
-    handleAnswer: handleAnswer,
-    sanitizeForHtml: sanitizeForHtml,
-  },
-}).then((obj) => {
-  ({ memory, evaluate, evaluateUnchecked, alloc } = obj.instance.exports);
-});
-
 function processSubmission(e) {
   e.preventDefault();
   if (editing_index >= 0) {
@@ -281,20 +312,7 @@ const handleKeyUp = () => {
 };
 
 function main() {
-  // Load history
-  const parsed_history = JSON.parse(localStorage.getItem("history"));
-  for (const calculation of parsed_history ? parsed_history : []) {
-    history.push({
-      equation: calculation.equation,
-      result: calculation.result ? calculation.result : 0,
-    });
-    createAndPushCardElement(
-      calculation.equation,
-      calculation.result !== null ? calculation.result : 0,
-      true,
-      false
-    );
-  }
+  loadHistory();
 
   form.addEventListener("submit", processSubmission);
   submit.addEventListener("click", processSubmission);
@@ -308,9 +326,7 @@ function main() {
   handleKeyUp();
 }
 
-main();
-
-// Edit Mode
+// Edit Mode Functions
 
 const updateResults = (start, newEquation, newResult) => {
   history[start].equation = newEquation;
