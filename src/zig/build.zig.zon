@@ -16,8 +16,8 @@
     // Internet connectivity.
     .dependencies = .{
         .calculator = .{
-            .url = "https://github.com/hdert/zig-calculator/archive/refs/tags/v0.3.2.tar.gz",
-            .hash = "1220361fabea6376522b6dc2ddee8dd8c4b0f833973e32e28a826c8825274dc292ed",
+            .url = "https://github.com/hdert/zig-calculator/archive/refs/tags/v0.3.3.tar.gz",
+            .hash = "1220c238ab03d295acf966e794f11afe38bdd2c77009ebb758ef40a8c94b65317d5e",
         },
         // See `zig fetch --save <url>` for a command-line interface for adding dependencies.
         //.example = .{

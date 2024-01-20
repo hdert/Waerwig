@@ -8,11 +8,11 @@ pub fn build(b: *std.Build) void {
     const exe = b.addExecutable(.{
         .name = "Calculator",
         .root_source_file = .{ .path = "wasm.zig" },
-        .target = .{ .cpu_arch = .wasm32, .os_tag = .freestanding },
+        .target = b.resolveTargetQuery(.{ .cpu_arch = .wasm32, .os_tag = .freestanding }),
         .optimize = .ReleaseFast,
     });
-    exe.addModule("Calculator", calculator.module("Calculator"));
-    exe.addModule("Addons", calculator.module("Addons"));
+    exe.root_module.addImport("Calculator", calculator.module("Calculator"));
+    exe.root_module.addImport("Addons", calculator.module("Addons"));
 
     exe.entry = .disabled;
     exe.rdynamic = true;
