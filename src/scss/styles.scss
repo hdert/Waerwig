@@ -1,6 +1,6 @@
 @use "_modules/variables" as *;
 
-#upper-row {
+.upper-row {
   flex-flow: column nowrap;
   height: 45vh;
   mask: linear-gradient(

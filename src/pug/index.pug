@@ -6,7 +6,7 @@ html(lang="en", data-bs-theme="dark")
     .container-fluid.vh-100
       .justify-content-center.d-flex.flex-wrap.vh-100.align-items-start
         .col-12.col-sm-8.d-flex.flex-wrap.mt-3
-          #upper-row.row.w-100.ms-0.overflow-y-auto.pt-4.overflow-x-hidden
+          #upper-row.upper-row.row.w-100.ms-0.overflow-y-auto.pt-4.overflow-x-hidden
           .row.w-100.ms-0
             form#form.col-12.p-0
               .input-group
@@ -21,6 +21,6 @@ html(lang="en", data-bs-theme="dark")
                   label#inputLabel.form-label.text-light(for="input") Loading...
                 button#submit.btn.btn-primary.fs-3(type="button", disabled) =
 
-          #lower-row.row.w-100.ms-0
+          #lower-row.lower-row.row.w-100.ms-0
   script(src="../js/main.js", type="module")
-  script(src="../js/includes.js", type="module")
+  //- script(src="../js/includes.js", type="module")

@@ -6,16 +6,16 @@
 
 import Tooltip from "bootstrap/js/dist/tooltip";
 
-var history = [];
-var editing_index = -1;
-var previous_input;
+let history = [];
+let editing_index = -1;
+let previous_input;
 // Global 'Constants' to manipulate the dom quicker
-var input = document.getElementById("input");
-var input_label = document.getElementById("inputLabel");
-var form = document.getElementById("form");
-var submit = document.getElementById("submit");
-var upper_row = document.getElementById("upper-row");
-var lower_row = document.getElementById("lower-row");
+let input = document.getElementById("input");
+let input_label = document.getElementById("inputLabel");
+let form = document.getElementById("form");
+let submit = document.getElementById("submit");
+let upper_row = document.getElementById("upper-row");
+let lower_row = document.getElementById("lower-row");
 // SVGs
 const edit_svg =
   '<svg xmlns="http://www.w3.org/2000/svg" aria-label="Submit edited equation" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg>';
@@ -44,8 +44,8 @@ const appendToHistory = (equation, result) => {
 };
 
 // https://stackoverflow.com/a/17546215
-var DOMtext = document.createTextNode("text");
-var DOMnative = document.createElement("span");
+let DOMtext = document.createTextNode("text");
+let DOMnative = document.createElement("span");
 DOMnative.appendChild(DOMtext);
 
 const sanitizeForHtml = (input, length) => {
@@ -93,7 +93,7 @@ const inputError = (pointer, length) => {
 };
 
 const copyText = (e) => {
-  var element = e.target;
+  let element = e.target;
   navigator.clipboard.writeText(element.innerText).then(() => {
     const original_text = element.getAttribute("data-bs-title");
     const tooltip = Tooltip.getInstance(element);
@@ -106,9 +106,9 @@ const copyText = (e) => {
 };
 
 const addTooltipsToDiv = (d) => {
-  var anchors = d.getElementsByTagName("a");
-  var anchor_equation = anchors[0];
-  var anchor_result = anchors[1];
+  let anchors = d.getElementsByTagName("a");
+  let anchor_equation = anchors[0];
+  let anchor_result = anchors[1];
   new Tooltip(anchor_equation);
   new Tooltip(anchor_result);
   anchor_equation.addEventListener("click", copyText);
@@ -125,7 +125,7 @@ const createAndPushCardElement = (
   if (!(addToHistory || addToCurrent)) {
     return;
   }
-  var div = document.createElement("div");
+  let div = document.createElement("div");
   div.classList.add(
     "alert",
     "alert-dark",
@@ -161,13 +161,13 @@ const createAndPushCardElement = (
   if (addToHistory) {
     const index = upper_row.childElementCount;
     // Adjust div for use as history card
-    var final_div = addToCurrent ? div.cloneNode(true) : div;
+    let final_div = addToCurrent ? div.cloneNode(true) : div;
     addTooltipsToDiv(final_div);
     final_div.classList.add("justify-content-between");
     final_div.insertAdjacentHTML("afterbegin", buttons);
     // Add event listeners to buttons
-    var control_buttons = final_div.getElementsByTagName("button");
-    var button_edit = control_buttons[0];
+    let control_buttons = final_div.getElementsByTagName("button");
+    let button_edit = control_buttons[0];
     button_edit.addEventListener("click", () => {
       editing_index = index;
       previous_input = input.value;
@@ -178,7 +178,7 @@ const createAndPushCardElement = (
       calculateResult(input.value, false);
       input.focus();
     });
-    var button_copy = control_buttons[1];
+    let button_copy = control_buttons[1];
     button_copy.addEventListener("click", () => {
       input.value += history[index].equation;
       submit.innerHTML = equal_svg;
@@ -215,17 +215,17 @@ const handleAnswer = (pointer, length, result, addToHistory) => {
   }
 };
 
-const {
-  instance: {
-    exports: { memory, evaluate, evaluateUnchecked, alloc },
-  },
-} = await WebAssembly.instantiateStreaming(fetch("./Calculator.wasm"), {
+let memory, evaluate, evaluateUnchecked, alloc;
+
+WebAssembly.instantiateStreaming(fetch("./Calculator.wasm"), {
   env: {
     print: print,
     inputError: inputError,
     handleAnswer: handleAnswer,
     sanitizeForHtml: sanitizeForHtml,
   },
+}).then((obj) => {
+  ({ memory, evaluate, evaluateUnchecked, alloc } = obj.instance.exports);
 });
 
 function processSubmission(e) {
@@ -316,8 +316,8 @@ const updateResults = (start, newEquation, newResult) => {
   history[start].equation = newEquation;
   history[start].result = newResult;
 
-  var previousAnswer = newResult;
-  var i = start + 1;
+  let previousAnswer = newResult;
+  let i = start + 1;
   while (i < history.length) {
     const result_before_edit = history[i].result;
     const new_result = evaluateUnchecked(
@@ -336,7 +336,7 @@ const updateCards = (start, end) => {
   const cards = upper_row.children;
   cards[start].lastChild.firstChild.firstChild.innerText =
     history[start].equation;
-  var i = start;
+  let i = start;
   while (i <= end) {
     cards[i].lastChild.lastChild.firstChild.innerText = history[i].result;
     i++;
