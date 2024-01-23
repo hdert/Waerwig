@@ -9,7 +9,7 @@ pub fn build(b: *std.Build) void {
         .name = "Calculator",
         .root_source_file = .{ .path = "wasm.zig" },
         .target = b.resolveTargetQuery(.{ .cpu_arch = .wasm32, .os_tag = .freestanding }),
-        .optimize = .ReleaseFast,
+        .optimize = .ReleaseSmall,
     });
     exe.root_module.addImport("Calculator", calculator.module("Calculator"));
     exe.root_module.addImport("Addons", calculator.module("Addons"));
